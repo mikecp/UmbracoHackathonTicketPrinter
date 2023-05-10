@@ -81,7 +81,7 @@ public class GitHubIssuesService : IIssueService
             var issuesResponse = await link
                 .WithClient(client)
                 .SetQueryParam("labels", string.Join(',', filter.Labels), NullValueHandling.Ignore)
-                //.SetQueryParam("since", filter.CreatedSince.ToString("O"), NullValueHandling.Remove)
+                .SetQueryParam("since", filter.CreatedSince.ToString("O"), NullValueHandling.Remove)
                 .GetAsync();
 
             var nextIssues = await issuesResponse.ResponseMessage.Content.ReadFromJsonAsync<IEnumerable<IssueRecordDto>>();
@@ -118,15 +118,17 @@ public class GitHubIssuesService : IIssueService
         BitmapByteQRCode qrCode = new BitmapByteQRCode(qrCodeData);
         var qrCodeAsBitmap = qrCode.GetGraphic(20);
 
-        File.WriteAllBytes($"C:\\Users\\Michael\\Documents\\CrossingPaths\\Projects\\Umbraco Contrib\\UmbracoHackathonTicketPrinter\\QR Codes\\{issuel.Number}.bmp", qrCodeAsBitmap);
+        File.WriteAllBytes($"C:\\Users\\Michael\\Documents\\Umbraco\\CG23\\Hackathon\\TicketPrinter\\QR Codes\\{issuel.Number}.bmp", qrCodeAsBitmap);
     }
 
     private IssueRecord DtoToRecord(IssueRecordDto dtoRecord)
         => new(
             dtoRecord.Id,
             dtoRecord.Number,
+            dtoRecord.Repository_Url.Substring(dtoRecord.Repository_Url.IndexOf("repos/") + "repos/".Length),
             dtoRecord.Html_Url,
             dtoRecord.Title,
+            dtoRecord.User.Login,
             dtoRecord.Labels.Select(l => l.Name).ToArray(),
             dtoRecord.State,
             dtoRecord.Body,
@@ -137,8 +139,10 @@ public class GitHubIssuesService : IIssueService
     protected record IssueRecordDto(
         [Required] int Id,
         [Required] int Number,
+        [Required] string Repository_Url,
         [Required] string Html_Url,
         [Required] string Title,
+        [Required] UserDto User,
         LabelDto[] Labels,
         string State,
         string Body,
@@ -148,6 +152,12 @@ public class GitHubIssuesService : IIssueService
 
     protected record LabelDto(
         [Required] string Name
-        )
+    )
+    {}
+
+    protected record UserDto
+    (
+        [Required] string Login
+    )
     {}
 }

@@ -5,7 +5,9 @@ VisualStudioVersion = 17.4.33122.133
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MikeCp.Umbraco.HackathonIssuePrinter", "MikeCp.Umbraco.HackathonIssuePrinter\MikeCp.Umbraco.HackathonIssuePrinter.csproj", "{8154D9D3-F77B-4CF7-84D7-145E715E1819}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MikeCp.Umbraco.HackathonIssuePrinter.Domain", "MikeCp.Umbraco.HackathonIssuePrinter.Domain\MikeCp.Umbraco.HackathonIssuePrinter.Domain.csproj", "{B9C0E682-0859-4DEF-A589-38B9EB8BE20E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MikeCp.Umbraco.HackathonIssuePrinter.Domain", "MikeCp.Umbraco.HackathonIssuePrinter.Domain\MikeCp.Umbraco.HackathonIssuePrinter.Domain.csproj", "{B9C0E682-0859-4DEF-A589-38B9EB8BE20E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MikeCp.Umbraco.HackathonIssuePrinter.PrinterService", "MikeCp.Umbraco.HackathonIssuePrinter.PrinterService\MikeCp.Umbraco.HackathonIssuePrinter.PrinterService.csproj", "{1E7C1041-7B70-4A7F-AC61-EDB404863041}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{B9C0E682-0859-4DEF-A589-38B9EB8BE20E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B9C0E682-0859-4DEF-A589-38B9EB8BE20E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B9C0E682-0859-4DEF-A589-38B9EB8BE20E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1E7C1041-7B70-4A7F-AC61-EDB404863041}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1E7C1041-7B70-4A7F-AC61-EDB404863041}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1E7C1041-7B70-4A7F-AC61-EDB404863041}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1E7C1041-7B70-4A7F-AC61-EDB404863041}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
