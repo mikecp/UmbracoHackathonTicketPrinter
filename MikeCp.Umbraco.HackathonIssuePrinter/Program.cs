@@ -1,5 +1,6 @@
 using MikeCp.Umbraco.HackathonIssuePrinter.Domain.Services.IssuesService;
 using MikeCp.Umbraco.HackathonIssuePrinter.PrinterService.POS58D;
+using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,9 +18,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
-app.MapGet("/printIssuesTicket", async () =>
+app.MapGet("/printIssuesTickets", async () =>
     {
         var issuesService = new GitHubIssuesService();
         var issuesFilter = new IssuesFilter
@@ -52,9 +53,33 @@ app.MapGet("/printIssuesTicket", async () =>
             }
         }
 
-        
     })
-    .WithName("PrintIssuesTicket");
+    .WithName("PrintIssuesTickets");
 
+app.MapPost("/printGitHubLabeledIssueTicket", (GitHubIssuesService.LabeledIssueDto payload) =>
+{
+    var labelsToProcess = new[] { "good first issue", "bug" };
+
+    // Make sure we can handle before printing
+    if ("labeled".Equals(payload.Action, StringComparison.OrdinalIgnoreCase) &&
+        labelsToProcess.Contains(payload.Label?.Name.ToLowerInvariant()) &&
+        "open".Equals(payload.Issue.State, StringComparison.OrdinalIgnoreCase))
+    {
+        // We proceed to print
+        var issue = GitHubIssuesService.DtoToRecord(payload.Issue);
+   /*     using (var printer = new POS58DPrinterService())
+        {
+            printer.Print(new
+                             (issue.Number.ToString(),
+                             issue.Title,
+                             string.Empty,
+                             issue.Repository,
+                             issue.User,
+                             issue.Url
+                             ));
+        }*/
+    }
+})
+    .WithName("PrintGitHubLabeledIssueTicket");
 
 app.Run();

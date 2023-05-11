@@ -1,80 +1,64 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace MikeCp.Umbraco.HackathonIssuePrinter.PrinterService.POS58D;
+﻿namespace MikeCp.Umbraco.HackathonIssuePrinter.PrinterService.POS58D;
 
 public sealed class POS58DPrinterService : IPrinterService, IDisposable
 {
-    private int m_objID;
+    private int _printerId;
+
+    public string PrinterType => "RG-P58D";
 
     public POS58DPrinterService()
     {
-        m_objID = 0;
+        _printerId = 0;
         OpenConnection();
     }
 
     public void Print(IssueDocument issue)
     {
-        int preFeed = 0;
-        int postFeed = 0;
-        bool bSucc = false;
-        string strErr = "";
-        int tick = Environment.TickCount;
-        if (preFeed != 0)
-        {
-            PrintSDK.CON_PageStart(m_objID, false, 0, 0);
-            PrintSDK.ASCII_CtrlFeedLines(m_objID, preFeed);
-            PrintSDK.CON_PageEnd(m_objID);
-            PrintSDK.CON_PageSend(m_objID);
-            if (preFeed < 0)
-                Thread.Sleep(500);
-        }
-
-        PrintSDK.CON_PageStart(m_objID, false, 0, 0);
-        PrintSDK.ASCII_CtrlReset(m_objID);
+        var tick = Environment.TickCount;
+ 
+        PrintSDK.CON_PageStart(_printerId, false, 0, 0);
+        PrintSDK.ASCII_CtrlReset(_printerId);
 
         // Global alignment is centered
-        PrintSDK.ASCII_CtrlAlignType(m_objID, AlignType.ALIGN_CENTER);
+        PrintSDK.ASCII_CtrlAlignType(_printerId, AlignType.ALIGN_CENTER);
         
         // Print Issue Id
-        PrintSDK.ASCII_CtrlCharSize(m_objID,3, 3);
-        PrintSDK.ASCII_PrintText(m_objID, $"#{issue.Id}\r\n\r\n");
+        PrintSDK.ASCII_CtrlCharSize(_printerId,3, 3);
+        PrintSDK.ASCII_PrintText(_printerId, $"#{issue.Id}\r\n\r\n");
        
         // Print Issue Title
-        PrintSDK.ASCII_CtrlCharSize(m_objID, 2, 2);
-        PrintSDK.ASCII_PrintText(m_objID, $"{issue.Title}\r\n\r\n");
+        PrintSDK.ASCII_CtrlCharSize(_printerId, 2, 2);
+        PrintSDK.ASCII_PrintText(_printerId, $"{issue.Title}\r\n\r\n");
         
         // Print Issue details
-        PrintSDK.ASCII_CtrlCharSize(m_objID, 1, 1);
-        PrintSDK.ASCII_PrintText(m_objID, "Issue created by ");
+        PrintSDK.ASCII_CtrlCharSize(_printerId, 1, 1);
+        PrintSDK.ASCII_PrintText(_printerId, "Issue created by ");
         
-        PrintSDK.ASCII_CtrlFormatString(m_objID, false, true, false, false, false);
-        PrintSDK.ASCII_PrintText(m_objID, issue.Author);
-        PrintSDK.ASCII_CtrlFormatString(m_objID, false, false, false, false, false);
+        PrintSDK.ASCII_CtrlFormatString(_printerId, false, true, false, false, false);
+        PrintSDK.ASCII_PrintText(_printerId, issue.Author);
+        PrintSDK.ASCII_CtrlFormatString(_printerId, false, false, false, false, false);
 
 
-        PrintSDK.ASCII_PrintText(m_objID, $" for repository ");
+        PrintSDK.ASCII_PrintText(_printerId, $" for repository ");
 
-        PrintSDK.ASCII_CtrlFormatString(m_objID, false, true, false, false, false);
-        PrintSDK.ASCII_PrintText(m_objID, issue.Source);
-        PrintSDK.ASCII_CtrlFormatString(m_objID, false, false, false, false, false);
+        PrintSDK.ASCII_CtrlFormatString(_printerId, false, true, false, false, false);
+        PrintSDK.ASCII_PrintText(_printerId, issue.Source);
+        PrintSDK.ASCII_CtrlFormatString(_printerId, false, false, false, false, false);
 
-        PrintSDK.ASCII_PrintText(m_objID, $" was marked as up for grabs\r\n\r\n");
-        PrintSDK.ASCII_PrintText(m_objID, "Scan to start working on it:\r\n");
+        PrintSDK.ASCII_PrintText(_printerId, $" was marked as up for grabs\r\n\r\n");
+        PrintSDK.ASCII_PrintText(_printerId, "Scan to start working on it:\r\n");
 
         // Print QR code with link to issue
-        PrintSDK.ASCII_Print2DBarcode(m_objID, 2, issue.Link, 4, 1, 6);
+        PrintSDK.ASCII_Print2DBarcode(_printerId, 2, issue.Link, 4, 1, 6);
 
         // End of doc
-        PrintSDK.ASCII_CtrlCutPaper(m_objID, CutType.CT_HALF_CUT, 0);
-        PrintSDK.CON_PageEnd(m_objID);
+        PrintSDK.ASCII_CtrlCutPaper(_printerId, CutType.CT_HALF_CUT, 0);
+        PrintSDK.CON_PageEnd(_printerId);
         
         // Handle actual printing (quasi copy-paste from SDK demo sample)
-        bSucc = false;
-        switch (PrintSDK.CON_PageSend(m_objID))
+        var bSucc = false;
+        var strErr = "";
+        switch (PrintSDK.CON_PageSend(_printerId))
         {
             case 0:
                 strErr = "CON_PageSend failure(IO failure),spend:{0:G}(ms)\r\n";
@@ -84,7 +68,7 @@ public sealed class POS58DPrinterService : IPrinterService, IDisposable
                 break;
             case 2:
                 {
-                    switch (PrintSDK.CON_QueryPrintStatus(m_objID, 8000))
+                    switch (PrintSDK.CON_QueryPrintStatus(_printerId, 8000))
                     {
                         case 0:
                             strErr = "CON_QueryPrintStatus failure(IO error),spend:{0:G}(ms)\r\n";
@@ -99,11 +83,11 @@ public sealed class POS58DPrinterService : IPrinterService, IDisposable
                 }
                 break;
         }
-        string strMess = String.Format(strErr, System.Environment.TickCount - tick);
+        var strMess = String.Format(strErr, Environment.TickCount - tick);
 
         if (!bSucc)
         {
-            switch (PrintSDK.CON_QueryStatus(m_objID))
+            switch (PrintSDK.CON_QueryStatus(_printerId))
             {
                 case 0:
                     bSucc = true;
@@ -126,29 +110,19 @@ public sealed class POS58DPrinterService : IPrinterService, IDisposable
         }
     }
 
-
     private void OpenConnection()
     {
-        // We need to load the liqst of USB Poerts prior to connecting to it...
-        byte[] btUSBList = new byte[256];
-        Int32 len1 = PrintSDK.PT_GetPorts(0, btUSBList, 256);
+        // We need to load the list of USB Poerts prior to connecting to it...
+        var btUSBList = new byte[256];
+        PrintSDK.PT_GetPorts(0, btUSBList, 256);
     
-        Int32 iRet = 0;
-
         var portName = "USB1";
-        var printerType = "RG-P58D";
 
-        iRet = PrintSDK.CON_ConnectDevices(printerType, portName, 1000);
+        var iRet = PrintSDK.CON_ConnectDevices(PrinterType, portName, 1000);
 
         if (iRet != 0)
         {
-            m_objID = iRet;
-            byte[] btVersion = new byte[256];
-            Int32 len = PrintSDK.CON_QueryPrinterFirmware(m_objID, btVersion, 256);
-            string str = Encoding.Unicode.GetString(btVersion, 0, (len) * 2);
-            byte[] btSerial = new byte[256];
-            len = PrintSDK.CON_QueryPrinterSerialNo(m_objID, btSerial, 256);
-            str = Encoding.Unicode.GetString(btSerial, 0, (len) * 2);
+            _printerId = iRet;
         }
         else
         {
@@ -158,10 +132,10 @@ public sealed class POS58DPrinterService : IPrinterService, IDisposable
 
     private void CloseConnection()
     {
-        if (m_objID != 0)
+        if (_printerId != 0)
         {
-            PrintSDK.CON_CloseDevices(m_objID);
-            m_objID = 0;
+            PrintSDK.CON_CloseDevices(_printerId);
+            _printerId = 0;
         }
     }
 

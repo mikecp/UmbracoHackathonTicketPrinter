@@ -14,5 +14,7 @@ public record IssueDocument
 
 public interface IPrinterService
 {
+    string PrinterType { get; }
+
     void Print(IssueDocument issue);
 }

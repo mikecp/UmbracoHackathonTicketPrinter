@@ -1,9 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.Drawing;
 using System.Net.Http.Json;
 using Flurl;
 using Flurl.Http;
-using QRCoder;
 
 namespace MikeCp.Umbraco.HackathonIssuePrinter.Domain.Services.IssuesService;
 
@@ -17,6 +15,37 @@ public class GitHubIssuesService : IIssueService
     protected const string ghp_token = "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";
 
     protected const string token = "11AANQAAY0x6TvBUDHrXby_DJLu1lh3hLVZ8lDtRgAY82uoY9uyHb5j1FexLtqEtszZF4OKCIF0Jv7ur7E";
+
+    public record IssueRecordDto(
+     [Required] int Id,
+     [Required] int Number,
+     [Required] string Repository_Url,
+     [Required] string Html_Url,
+     [Required] string Title,
+     [Required] UserDto User,
+     LabelDto[] Labels,
+     string State,
+     string Body,
+     [Required] DateTime Created_At,
+     DateTime Updated_At)
+    { }
+
+    public record LabelDto(
+        [Required] string Name
+    )
+    { }
+
+    public record UserDto
+    (
+        [Required] string Login
+    )
+    { }
+
+    public record LabeledIssueDto (
+        [Required] string Action,
+        [Required] IssueRecordDto Issue,
+        LabelDto Label
+    );
 
     public Task<IssueRecord?> GetIssue(int issueId)
     {
@@ -94,34 +123,10 @@ public class GitHubIssuesService : IIssueService
 
         } while (!string.IsNullOrWhiteSpace(link));
 
-        issues.ForEach(GenerateUrlQRCode);
-
         return issues.Select(DtoToRecord);
     }
 
-    private string? GetNextPageLink(string? linksInfo)
-        => string.IsNullOrWhiteSpace(linksInfo)
-            ? null
-            : linksInfo
-                .Split(',')
-                .FirstOrDefault(l => l.Contains("rel=\"next\""))
-                ?.Split(';')[0]
-                .Trim(' ', '<', '>');
-
-    private void GenerateUrlQRCode(IssueRecordDto issuel)
-    {
-        var generator = new PayloadGenerator.Url(issuel.Html_Url);
-        var payload = generator.ToString();
-
-        QRCodeGenerator qrGenerator = new QRCodeGenerator();
-        QRCodeData qrCodeData = qrGenerator.CreateQrCode(payload, QRCodeGenerator.ECCLevel.Q);
-        BitmapByteQRCode qrCode = new BitmapByteQRCode(qrCodeData);
-        var qrCodeAsBitmap = qrCode.GetGraphic(20);
-
-        File.WriteAllBytes($"C:\\Users\\Michael\\Documents\\Umbraco\\CG23\\Hackathon\\TicketPrinter\\QR Codes\\{issuel.Number}.bmp", qrCodeAsBitmap);
-    }
-
-    private IssueRecord DtoToRecord(IssueRecordDto dtoRecord)
+    public static IssueRecord DtoToRecord(IssueRecordDto dtoRecord)
         => new(
             dtoRecord.Id,
             dtoRecord.Number,
@@ -136,28 +141,12 @@ public class GitHubIssuesService : IIssueService
             dtoRecord.Updated_At
         );
 
-    protected record IssueRecordDto(
-        [Required] int Id,
-        [Required] int Number,
-        [Required] string Repository_Url,
-        [Required] string Html_Url,
-        [Required] string Title,
-        [Required] UserDto User,
-        LabelDto[] Labels,
-        string State,
-        string Body,
-        [Required] DateTime Created_At,
-        DateTime Updated_At)
-    {}
-
-    protected record LabelDto(
-        [Required] string Name
-    )
-    {}
-
-    protected record UserDto
-    (
-        [Required] string Login
-    )
-    {}
+    private string? GetNextPageLink(string? linksInfo)
+        => string.IsNullOrWhiteSpace(linksInfo)
+            ? null
+            : linksInfo
+                .Split(',')
+                .FirstOrDefault(l => l.Contains("rel=\"next\""))
+                ?.Split(';')[0]
+                .Trim(' ', '<', '>');
 }

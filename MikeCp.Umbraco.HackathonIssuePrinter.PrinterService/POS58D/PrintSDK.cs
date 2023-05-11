@@ -1,4 +1,8 @@
-﻿using System;
+﻿/*
+ * THis class is a copy from the SDK samples for, the printer.
+ * The only updates here are the links to the dll's on the DllImport attributes in order to match with our project structure
+ */
+
 using System.Runtime.InteropServices;
 
 namespace MikeCp.Umbraco.HackathonIssuePrinter.PrinterService.POS58D;
