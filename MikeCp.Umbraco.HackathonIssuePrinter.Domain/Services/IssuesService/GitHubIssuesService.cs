@@ -7,14 +7,15 @@ namespace MikeCp.Umbraco.HackathonIssuePrinter.Domain.Services.IssuesService;
 
 public class GitHubIssuesService : IIssueService
 {
-    protected const string GitHubRoot = "https://api.github.com";
+    protected readonly string gitHubRoot = string.Empty;
+    protected readonly string pat_token = string.Empty;
 
-    protected const string pat_token =
-        "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";
-
-    protected const string ghp_token = "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";
-
-    protected const string token = "11AANQAAY0x6TvBUDHrXby_DJLu1lh3hLVZ8lDtRgAY82uoY9uyHb5j1FexLtqEtszZF4OKCIF0Jv7ur7E";
+    public class Configuration
+    {
+        public string ApiRoot { get; set; } = string.Empty;
+        public string[] LabelsToProcess { get; set; } = new string[0];
+        public string PatToken { get; set; } = string.Empty;
+    }
 
     public record IssueRecordDto(
      [Required] int Id,
@@ -47,64 +48,25 @@ public class GitHubIssuesService : IIssueService
         LabelDto Label
     );
 
-    public Task<IssueRecord?> GetIssue(int issueId)
+    public GitHubIssuesService(Configuration configuration)
     {
-        throw new NotImplementedException();
+        gitHubRoot = configuration.ApiRoot;
+        pat_token = configuration.PatToken ?? string.Empty;
     }
 
     public async Task<IEnumerable<IssueRecord>> GetIssues(IssuesFilter filter)
     {
-
         using var gitApiClient = new HttpClient();
-        gitApiClient.BaseAddress = new Uri(GitHubRoot);
-        var token = pat_token;
+        gitApiClient.BaseAddress = new Uri(gitHubRoot);
 
         gitApiClient.DefaultRequestHeaders.UserAgent.Add(new System.Net.Http.Headers.ProductInfoHeaderValue("AppName", "1.0"));
         gitApiClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-        gitApiClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Token", token);
+        gitApiClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Token", pat_token);
 
-      /*  var testResponse = await testClient.GetStringAsync("/repos/Umbraco/Umbraco-CMS/issues?labels=community%2Fup-for-grabs");
-       
-        using var httpClient = new HttpClient();
-        httpClient.BaseAddress = new Uri(GitHubRoot);
-        httpClient.DefaultRequestHeaders.UserAgent.Add(new System.Net.Http.Headers.ProductInfoHeaderValue("AppName", "1.0"));
-        httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-        httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Token", pat_token);
-       */
         var issues = new List<IssueRecordDto>();
         var link = "/repos/Umbraco/Umbraco-CMS/issues";
 
         using var client = new FlurlClient(gitApiClient);
-   /*    var blob = await $"{GitHubRoot}{link}"
-            .WithClient(client)
-            .SetQueryParam("labels", string.Join(',', filter.Labels), NullValueHandling.Ignore)
-            //    .SetQueryParam("since", filter.CreatedSince.ToString("O"), NullValueHandling.Remove)
-            .GetJsonAsync<IEnumerable<IssueRecordDto>>();
-
-
-/*
-
-        var httpClient = new HttpClient();
-        httpClient.DefaultRequestHeaders.Add("Authorization", $"token {pat_token}");
-        //httpClient.BaseAddress = new Uri(GitHubRoot);
-        var response = await httpClient
-            .GetAsync("https://api.github.com/repos/mikecp/Umbraco-CMS/issues?labels=community%2Fup-for-grabs");
-
-        using var client = new FlurlClient(GitHubRoot);
-
-        var blob1 = await client
-            .WithOAuthBearerToken(pat_token)
-            .Request("repos", "Umbraco", "Umbraco-CMS", "issues")
-            .SetQueryParam("labels", string.Join(',', filter.Labels), NullValueHandling.Ignore)
-            .GetJsonAsync<IEnumerable<IssueRecordDto>>();
-
-        var blob = await link
-            .WithClient(client)
-            .SetQueryParam("labels", string.Join(',', filter.Labels), NullValueHandling.Ignore)
-            //    .SetQueryParam("since", filter.CreatedSince.ToString("O"), NullValueHandling.Remove)
-            .GetJsonAsync<IEnumerable<IssueRecordDto>>();
-
-        */
         do
         {
             var issuesResponse = await link

@@ -3,11 +3,13 @@
 public sealed class POS58DPrinterService : IPrinterService, IDisposable
 {
     private int _printerId;
+    private PrinterConfiguration _config;
 
     public string PrinterType => "RG-P58D";
 
-    public POS58DPrinterService()
+    public POS58DPrinterService(PrinterConfiguration config)
     {
+        _config = config;
         _printerId = 0;
         OpenConnection();
     }
@@ -116,7 +118,7 @@ public sealed class POS58DPrinterService : IPrinterService, IDisposable
         var btUSBList = new byte[256];
         PrintSDK.PT_GetPorts(0, btUSBList, 256);
     
-        var portName = "USB1";
+        var portName = _config.IP ?? _config.USB ?? string.Empty;
 
         var iRet = PrintSDK.CON_ConnectDevices(PrinterType, portName, 1000);
 

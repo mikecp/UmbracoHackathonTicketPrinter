@@ -18,3 +18,9 @@ public interface IPrinterService
 
     void Print(IssueDocument issue);
 }
+
+public class PrinterConfiguration
+{
+    public string? USB { get; set; }
+    public string? IP { get; set; }
+}

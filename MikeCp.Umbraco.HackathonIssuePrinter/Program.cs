@@ -1,6 +1,5 @@
 using MikeCp.Umbraco.HackathonIssuePrinter.Domain.Services.IssuesService;
 using MikeCp.Umbraco.HackathonIssuePrinter.PrinterService.POS58D;
-using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +7,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+var config = builder.Configuration;
 
 var app = builder.Build();
 
@@ -20,26 +21,22 @@ if (app.Environment.IsDevelopment())
 
 //app.UseHttpsRedirection();
 
-app.MapGet("/printIssuesTickets", async () =>
-    {
-        var issuesService = new GitHubIssuesService();
-        var issuesFilter = new IssuesFilter
-        {
-            CreatedSince = new DateTime(2023, 05, 01),
-            Labels = new[] { "community/up-for-grabs" }
-        };
+var githubConfig = config.GetSection("GitHub").Get<GitHubIssuesService.Configuration>();
+var printerConfig = config.GetSection("Printer").Get<MikeCp.Umbraco.HackathonIssuePrinter.PrinterService.PrinterConfiguration>();
 
-        var issues =  (await issuesService.GetIssues(issuesFilter));
+app.MapGet("/printIssuesTickets", async (string? label, DateTime? createdSince) =>
+    {
+        var issuesService = new GitHubIssuesService(githubConfig);
+
+        var issues =  (await issuesService.GetIssues(new IssuesFilter { Labels = new[] { label ?? string.Empty }, CreatedSince = createdSince ?? DateTime.Now })).ToList();
 
         if (issues?.Count() > 0)
         {
-            using (var printer = new POS58DPrinterService())
+            using (var printer = new POS58DPrinterService(printerConfig))
             {
-                var issue = issues.First();
-
-               /* issues?.ToList().ForEach(
+                issues?.ToList().ForEach(
                     issue =>
-                    {*/
+                    {
                         printer.Print(new
                                         (issue.Number.ToString(),
                                         issue.Title,
@@ -48,26 +45,26 @@ app.MapGet("/printIssuesTickets", async () =>
                                         issue.User,
                                         issue.Url
                                         ));
-         /*           }
-                    );*/
+                    }
+                    );
             }
         }
-
     })
     .WithName("PrintIssuesTickets");
 
 app.MapPost("/printGitHubLabeledIssueTicket", (GitHubIssuesService.LabeledIssueDto payload) =>
 {
-    var labelsToProcess = new[] { "good first issue", "bug" };
+    var labelsToProcess = githubConfig.LabelsToProcess;
 
-    // Make sure we can handle before printing
+    // Make sure it is a trigger we want to handle before printing
     if ("labeled".Equals(payload.Action, StringComparison.OrdinalIgnoreCase) &&
-        labelsToProcess.Contains(payload.Label?.Name.ToLowerInvariant()) &&
-        "open".Equals(payload.Issue.State, StringComparison.OrdinalIgnoreCase))
+        "open".Equals(payload.Issue.State, StringComparison.OrdinalIgnoreCase) &&
+        labelsToProcess.Contains(payload.Label?.Name.ToLowerInvariant() ?? string.Empty)
+        )
     {
         // We proceed to print
         var issue = GitHubIssuesService.DtoToRecord(payload.Issue);
-   /*     using (var printer = new POS58DPrinterService())
+        using (var printer = new POS58DPrinterService(printerConfig))
         {
             printer.Print(new
                              (issue.Number.ToString(),
@@ -77,7 +74,7 @@ app.MapPost("/printGitHubLabeledIssueTicket", (GitHubIssuesService.LabeledIssueD
                              issue.User,
                              issue.Url
                              ));
-        }*/
+        }
     }
 })
     .WithName("PrintGitHubLabeledIssueTicket");
