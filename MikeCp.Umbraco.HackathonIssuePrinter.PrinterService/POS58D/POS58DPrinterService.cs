@@ -40,7 +40,6 @@ public sealed class POS58DPrinterService : IPrinterService, IDisposable
         PrintSDK.ASCII_PrintText(_printerId, issue.Author);
         PrintSDK.ASCII_CtrlFormatString(_printerId, false, false, false, false, false);
 
-
         PrintSDK.ASCII_PrintText(_printerId, $" for repository ");
 
         PrintSDK.ASCII_CtrlFormatString(_printerId, false, true, false, false, false);
@@ -48,15 +47,25 @@ public sealed class POS58DPrinterService : IPrinterService, IDisposable
         PrintSDK.ASCII_CtrlFormatString(_printerId, false, false, false, false, false);
 
         PrintSDK.ASCII_PrintText(_printerId, $" was marked as up for grabs\r\n\r\n");
-        PrintSDK.ASCII_PrintText(_printerId, "Scan to start working on it:\r\n");
+        PrintSDK.ASCII_PrintText(_printerId, "Scan to start working on it:\r\n\r\n");
 
         // Print QR code with link to issue
         PrintSDK.ASCII_Print2DBarcode(_printerId, 2, issue.Link, 4, 1, 6);
 
+        // Print Footer
+        PrintSDK.ASCII_CtrlAlignType(_printerId, AlignType.ALIGN_LEFT);
+        PrintSDK.CON_PrintFile(_printerId, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets\\umbraco.bmp"));
+        PrintSDK.ASCII_CtrlFormatString(_printerId, false, true, false, false, false);
+        PrintSDK.ASCII_PrintText(_printerId, "CG23    ");
+        PrintSDK.ASCII_CtrlFormatString(_printerId, false, false, false, false, false);
+        PrintSDK.ASCII_PrintText(_printerId, string.Format("{0:G}", DateTime.Now) + "\r\n\r\n");
+        PrintSDK.ASCII_CtrlAlignType(_printerId, AlignType.ALIGN_CENTER);
+        PrintSDK.CON_PrintFile(_printerId, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets\\our_heart.bmp"));
+
         // End of doc
         PrintSDK.ASCII_CtrlCutPaper(_printerId, CutType.CT_HALF_CUT, 0);
         PrintSDK.CON_PageEnd(_printerId);
-        
+
         // Handle actual printing (quasi copy-paste from SDK demo sample)
         var bSucc = false;
         var strErr = "";
