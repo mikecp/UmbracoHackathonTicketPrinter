@@ -2,7 +2,7 @@
 
 The initial scope of this project was to build a gimmick for the Umbraco Codegarden 23 Hackathon: we wanted to print receipts tickets containing information about issues in the Umbraco repository that would get labeled with a specific "hackathon-up-for-grabs" label.  
 
-You can find all details about the genesis of this project and the choices we made in the October 23 edition of the online [Skrift](https://skrift.io/) magazine. You also get explainations on how you can integrate it without too much work  in your own hackathons, events or even at work!  
+You can find all details about the genesis of this project and the choices we made in the October 23 edition of the online [Skrift](https://skrift.io/issues/materializing-your-open-source-repository-issues-the-codegarden-hackathon-issue-receipt-printer/) magazine. You also get explainations on how you can integrate it without too much work  in your own hackathons, events or even at work!  
 Hence the going public of this repository together with the publication of the article 😊
 
 TLDR: Here are some quick hints for using and configuring the solution to your needs.
