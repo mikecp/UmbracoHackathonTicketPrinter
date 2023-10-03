@@ -29,11 +29,14 @@ And then you can always start the tunnel with it's identifyer:
 
 `ngrok tunnel --label edge={identifier} http://localhost:5120`
 
+Please note that your API should be running locally on http, becaue https is not available for free ngrok accounts (the public forwarding URL is always in https though)
+
 In order to set up the webhook in GitHub, go to the Webhook settings on your repository (`https://github.com/{your-user-name}/{your-repository-name}/settings/hooks`) and choose the following:
 
 - Payload URL: `https://{your-prefix}.ngrok-free.app/printGitHubLabeledIssueTicket
 - Content type: `application/json`
 - Secret: `{the password you just set in ngrok}`
+- SSL verification Enabled
 - Let me select individual events ==> Choose "Issues"
 
 Then tap "Add webhook" to finish up.
